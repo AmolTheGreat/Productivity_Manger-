@@ -3,197 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productivity Manager!</title>
+    <title>Amol Giri | Productivity Hub</title>
     <style>
-        :root { --neon: #00ff88; --danger: #ff3b30; --bg: #050505; --panel: #111; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        :root { --neon: #00ff88; --danger: #ff3b30; --bg: #050505; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
         
-        .app-card { background: var(--panel); width: 90%; max-width: 450px; padding: 25px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 0 30px rgba(0,255,136,0.1); position: relative; z-index: 10; }
-        h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 2px; margin: 0; font-size: 1.8rem; }
+        .card { background: #111; border: 1px solid #333; padding: 40px; border-radius: 20px; box-shadow: 0 0 30px rgba(0,255,136,0.1); max-width: 500px; width: 90%; }
+        h1 { color: var(--neon); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; }
+        .id-tag { color: #444; font-family: monospace; font-size: 12px; margin-bottom: 20px; }
         
-        .bio-box { background: #1a1a1a; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.5; color: #aaa; border-left: 4px solid var(--neon); margin: 20px 0; }
+        .bio { border-left: 4px solid var(--neon); background: #1a1a1a; padding: 20px; text-align: left; font-size: 14px; line-height: 1.6; color: #aaa; margin: 20px 0; }
         
-        .timer-config { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px; }
-        .time-box { display: flex; flex-direction: column; align-items: center; }
-        .time-box label { font-size: 10px; color: var(--neon); margin-bottom: 5px; }
+        .download-btn { display: inline-block; background: var(--neon); color: black; padding: 20px 40px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 18px; transition: 0.3s; box-shadow: 0 0 20px rgba(0,255,136,0.3); cursor: pointer; border: none; }
+        .download-btn:hover { transform: scale(1.05); box-shadow: 0 0 40px var(--neon); }
         
-        input[type="number"] { width: 60px; padding: 10px; background: #000; border: 1px solid #444; color: var(--neon); border-radius: 8px; text-align: center; font-size: 1.2rem; outline: none; }
-        input:focus { border-color: var(--neon); }
-
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: #000; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #222; }
-        .stat-label { font-size: 10px; color: #666; display: block; }
-        .stat-num { font-size: 20px; color: var(--neon); font-weight: bold; }
-
-        button { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; text-transform: uppercase; }
-        .btn-start { background: var(--neon); color: black; }
-        .btn-panic { background: #ff9500; color: white; }
-        
-        /* THE AI BLOCKER SCREEN */
-        #blocker { position: fixed; top:0; left:0; width: 100%; height: 100%; background: var(--danger); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; text-align: center; padding: 20px; }
-        #blocker h2 { font-size: 3rem; margin: 0; }
-
-        #active-timer { font-size: 3.5rem; color: var(--neon); font-weight: bold; text-align: center; margin: 20px 0; font-family: monospace; }
-        .hidden { display: none; }
+        .instructions { margin-top: 30px; font-size: 12px; color: #666; text-align: left; }
+        code { background: #000; padding: 2px 5px; color: var(--neon); }
     </style>
 </head>
 <body>
 
-<div id="blocker">
-    <h2>AI BLOCK ACTIVE</h2>
-    <p>NON-PRODUCTIVE CODE SIGNATURE DETECTED</p>
-    <p style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">You attempted to access a prohibited application or website.</p>
-    <button onclick="closeBlocker()" style="width: 250px; background: white; color: black; margin-top: 20px;">RETURN TO GOAL</button>
-</div>
-
-<div class="app-card">
-    <h1>Productivity Manager!</h1>
-    
-    <div class="bio-box">
-        This advanced productivity system was engineered by <strong>Amol Giri</strong>. 
-        It utilizes logic-based monitoring to ensure peak performance and 
-        strictly regulates access to non-productive platforms. Built for 
-        those who value their time and goal achievement.
-    </div>
-
-    <div id="setup-area">
-        <div class="timer-config">
-            <div class="time-box">
-                <label>HRS</label>
-                <input type="number" id="hrs" value="00" min="0" max="23">
-            </div>
-            <div style="margin-top: 20px; font-weight: bold;">:</div>
-            <div class="time-box">
-                <label>MINS</label>
-                <input type="number" id="mins" value="25" min="0" max="59">
-            </div>
-            <div style="margin-top: 20px; font-weight: bold;">:</div>
-            <div class="time-box">
-                <label>SECS</label>
-                <input type="number" id="secs" value="00" min="0" max="59">
-            </div>
-        </div>
-        <button class="btn-start" onclick="initiateSystem()">INITIATE PROTOCOL</button>
-    </div>
-
-    <div id="active-area" class="hidden">
-        <div style="text-align:center; color: var(--neon); font-size: 12px; font-weight: bold;">● AI MONITORING ENABLED</div>
-        <div id="active-timer">00:25:00</div>
-        <p style="text-align: center; font-size: 11px; color: #666;">TAB LOCK ACTIVE: Leaving this page triggers AI Block.</p>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card"><span class="stat-label">PANIC RESETS</span><span class="stat-num" id="pCount">3</span></div>
-        <div class="stat-card"><span class="stat-label">SESSIONS DONE</span><span class="stat-num" id="gCount">0</span></div>
-    </div>
-
-    <button class="btn-panic" onclick="usePanic()">PANIC RESET (Use 1)</button>
-
-    <div style="display: flex; gap: 5px; margin-top: 15px; border-top: 1px solid #222; padding-top: 15px;">
-        <input type="password" id="devPass" placeholder="DEV CODE" style="margin:0; font-size: 12px; flex-grow: 1;">
-        <button onclick="devKill()" style="width: 80px; background: var(--danger); color: white; margin: 0; padding: 5px; font-size: 11px;">KILL</button>
-    </div>
-</div>
-
-<script>
-    let panics = 3;
-    let sessions = 0;
-    let isActive = false;
-    let totalSeconds = 0;
-    let timerInt;
-
-    function initiateSystem() {
-        let h = parseInt(document.getElementById('hrs').value) || 0;
-        let m = parseInt(document.getElementById('mins').value) || 0;
-        let s = parseInt(document.getElementById('secs').value) || 0;
-        totalSeconds = (h * 3600) + (m * 60) + s;
-
-        if (totalSeconds <= 0) return alert("System Error: No duration specified.");
-
-        const perms = [
-            "Grant Amol Giri AI access to monitor device signatures?",
-            "Authorize blocking of non-productive behavior?",
-            "Final Step: Productivity Protocol will start now. Proceed?"
-        ];
-
-        for (let p of perms) {
-            if (!confirm(p)) return;
-        }
-
-        isActive = true;
-        document.getElementById('setup-area').classList.add('hidden');
-        document.getElementById('active-area').classList.remove('hidden');
+    <div class="card">
+        <h1>Productivity Manager</h1>
+        <div class="id-tag">AUTHORIZED BY AMOL GIRI | ID: AG-MASTER-001</div>
         
-        startCountdown();
+        <div class="bio">
+            Welcome to the official Amol Giri Productivity Hub. This portal provides access to the 
+            <strong>System Enforcer AI</strong>. Unlike standard web blockers, the downloadable agent 
+            integrates with your laptop's core processes to detect and force-close non-productive 
+            signatures like Roblox, YouTube, and Discord.
+        </div>
 
-        // AI MONITORING: Detects when you go to another tab
-        window.onblur = function() {
-            if (isActive) {
-                document.getElementById('blocker').style.display = 'flex';
-            }
-        };
-    }
+        <p style="margin-bottom: 30px; color: #eee;">Download the Python script below to initiate Hard Lockdown mode on your Windows device.</p>
 
-    function startCountdown() {
-        updateClock();
-        timerInt = setInterval(() => {
-            totalSeconds--;
-            updateClock();
-            if (totalSeconds <= 0) {
-                sessionSuccess();
-            }
-        }, 1000);
-    }
+        <button onclick="downloadPython()" class="download-btn">DOWNLOAD ENFORCER SCRIPT</button>
 
-    function updateClock() {
-        let h = Math.floor(totalSeconds / 3600);
-        let m = Math.floor((totalSeconds % 3600) / 60);
-        let s = totalSeconds % 60;
-        document.getElementById('active-timer').innerText = 
-            `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-    }
+        <div class="instructions">
+            <strong>System Requirements:</strong><br>
+            1. Install Python from <code>python.org</code><br>
+            2. Open your terminal and type <code>pip install psutil</code><br>
+            3. Run the downloaded file. It will ask for permission before blocking.
+        </div>
+    </div>
 
-    function usePanic() {
-        if (panics > 0) {
-            panics--;
-            stopSystem("PANIC USED: SYSTEM DISARMED.");
-        } else {
-            alert("ALERT: ZERO PANIC RESETS REMAINING.");
+    <script>
+        function downloadPython() {
+            // This is the Python code for your Laptop Blocker
+            const pythonCode = `import psutil
+import time
+import tkinter as tk
+from tkinter import messagebox
+import threading
+
+class AmolGiriEnforcer:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Amol Giri | System Enforcer")
+        self.root.geometry("400x500")
+        self.root.configure(bg="#050505")
+        self.is_active = False
+        self.panics = 3
+        self.blacklist = ["roblox", "discord", "youtube", "tiktok", "netflix", "spotify"]
+        self.setup_ui()
+
+    def setup_ui(self):
+        tk.Label(self.root, text="SYSTEM ENFORCER", font=("Impact", 24), fg="#00ff88", bg="#050505").pack(pady=10)
+        tk.Label(self.root, text="ID: AG-AI-ENFORCE-001", font=("Courier", 10), fg="#444", bg="#050505").pack()
+        self.timer_label = tk.Label(self.root, text="00:25:00", font=("Courier", 40), fg="#00ff88", bg="#050505")
+        self.timer_label.pack(pady=20)
+        self.start_btn = tk.Button(self.root, text="INITIATE LOCKDOWN", command=self.start_protocol, bg="#00ff88", fg="black", font=("Arial", 12, "bold"), width=20)
+        self.start_btn.pack(pady=10)
+        tk.Button(self.root, text="PANIC RESET", command=self.panic, bg="#ff9500", fg="white").pack()
+
+    def start_protocol(self):
+        for q in ["Grant Amol Giri AI System Access?", "Authorize Force-Close on Apps?", "Start Lockdown?"]:
+            if not messagebox.askyesno("PERMISSION REQUEST", q): return
+        self.is_active = True
+        self.start_btn.config(state="disabled")
+        threading.Thread(target=self.logic_loop, daemon=True).start()
+
+    def logic_loop(self):
+        total_seconds = 25 * 60
+        while total_seconds > 0 and self.is_active:
+            for proc in psutil.process_iter(['name']):
+                try:
+                    if any(bad in proc.info['name'].lower() for bad in self.blacklist):
+                        proc.kill()
+                except: continue
+            time.sleep(1)
+            total_seconds -= 1
+        self.is_active = False
+        self.start_btn.config(state="normal")
+
+    def panic(self):
+        if self.panics > 0:
+            self.panics -= 1
+            self.is_active = False
+            messagebox.showwarning("PANIC", "System Disarmed.")
+        else:
+            messagebox.showerror("DENIED", "No Panics Left.")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AmolGiriEnforcer(root)
+    root.mainloop()`;
+
+            const blob = new Blob([pythonCode], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'amol_giri_enforcer.py';
+            a.click();
+            window.URL.revokeObjectURL(url);
         }
-    }
-
-    function sessionSuccess() {
-        sessions++;
-        panics++;
-        stopSystem("MISSION SUCCESS: +1 PANIC RESET GRANTED.");
-    }
-
-    function devKill() {
-        if (document.getElementById('devPass').value === "123") {
-            stopSystem("DEVELOPER OVERRIDE: PROTOCOL SHUT DOWN.");
-        }
-    }
-
-    function closeBlocker() {
-        document.getElementById('blocker').style.display = 'none';
-    }
-
-    function stopSystem(msg) {
-        alert(msg);
-        isActive = false;
-        clearInterval(timerInt);
-        document.getElementById('setup-area').classList.remove('hidden');
-        document.getElementById('active-area').classList.add('hidden');
-        document.getElementById('blocker').style.display = 'none';
-        document.getElementById('devPass').value = "";
-        updateUI();
-    }
-
-    function updateUI() {
-        document.getElementById('pCount').innerText = panics;
-        document.getElementById('gCount').innerText = sessions;
-    }
-</script>
-
+    </script>
 </body>
 </html>
