@@ -5,43 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productivity Manager!</title>
     <style>
-        :root { --neon: #00ff88; --danger: #ff3b30; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        :root { --neon: #00ff88; --danger: #ff3b30; --bg: #050505; --panel: #111; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
         
-        .app-card { background: #111; width: 90%; max-width: 450px; padding: 25px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 0 30px rgba(0,255,136,0.1); position: relative; z-index: 10; }
-        h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 2px; margin-top: 0; }
+        .app-card { background: var(--panel); width: 90%; max-width: 450px; padding: 25px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 0 30px rgba(0,255,136,0.1); position: relative; z-index: 10; }
+        h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 2px; margin: 0; font-size: 1.8rem; }
         
-        .bio-box { background: #1a1a1a; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.5; color: #aaa; border-left: 4px solid var(--neon); margin-bottom: 20px; }
+        .bio-box { background: #1a1a1a; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.5; color: #aaa; border-left: 4px solid var(--neon); margin: 20px 0; }
         
+        .timer-config { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .time-box { display: flex; flex-direction: column; align-items: center; }
+        .time-box label { font-size: 10px; color: var(--neon); margin-bottom: 5px; }
+        
+        input[type="number"] { width: 60px; padding: 10px; background: #000; border: 1px solid #444; color: var(--neon); border-radius: 8px; text-align: center; font-size: 1.2rem; outline: none; }
+        input:focus { border-color: var(--neon); }
+
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-card { background: #000; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #222; }
         .stat-label { font-size: 10px; color: #666; display: block; }
         .stat-num { font-size: 20px; color: var(--neon); font-weight: bold; }
 
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 12px; margin-bottom: 5px; color: var(--neon); }
-        input { width: 100%; padding: 12px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
-        input:focus { border-color: var(--neon); }
-
-        button { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
+        button { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; text-transform: uppercase; }
         .btn-start { background: var(--neon); color: black; }
         .btn-panic { background: #ff9500; color: white; }
         
+        /* THE AI BLOCKER SCREEN */
         #blocker { position: fixed; top:0; left:0; width: 100%; height: 100%; background: var(--danger); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; text-align: center; padding: 20px; }
-        
-        .dev-row { display: flex; gap: 5px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #222; }
-        .btn-kill { background: var(--danger); color: white; width: 30%; font-size: 11px; padding: 5px; }
-        
-        #timer-display { font-size: 2.5rem; font-weight: bold; color: var(--neon); margin: 10px 0; }
+        #blocker h2 { font-size: 3rem; margin: 0; }
+
+        #active-timer { font-size: 3.5rem; color: var(--neon); font-weight: bold; text-align: center; margin: 20px 0; font-family: monospace; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <div id="blocker">
-    <h1>AI BLOCK ACTIVE</h1>
-    <p>NON-PRODUCTIVE SIGNATURE DETECTED DURING PRODUCTIVITY SESSION</p>
-    <p>FOCUS ON YOUR WORK UNTIL THE TIMER ENDS</p>
-    <button onclick="closeBlocker()" style="width: 200px; background: white; color: black;">RETURN TO WORK</button>
+    <h2>AI BLOCK ACTIVE</h2>
+    <p>NON-PRODUCTIVE CODE SIGNATURE DETECTED</p>
+    <p style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">You attempted to access a prohibited application or website.</p>
+    <button onclick="closeBlocker()" style="width: 250px; background: white; color: black; margin-top: 20px;">RETURN TO GOAL</button>
 </div>
 
 <div class="app-card">
@@ -55,29 +57,41 @@
     </div>
 
     <div id="setup-area">
-        <div class="input-group">
-            <label>PRODUCTIVITY DURATION (MINUTES):</label>
-            <input type="number" id="timeInput" placeholder="e.g. 25" min="1">
+        <div class="timer-config">
+            <div class="time-box">
+                <label>HRS</label>
+                <input type="number" id="hrs" value="00" min="0" max="23">
+            </div>
+            <div style="margin-top: 20px; font-weight: bold;">:</div>
+            <div class="time-box">
+                <label>MINS</label>
+                <input type="number" id="mins" value="25" min="0" max="59">
+            </div>
+            <div style="margin-top: 20px; font-weight: bold;">:</div>
+            <div class="time-box">
+                <label>SECS</label>
+                <input type="number" id="secs" value="00" min="0" max="59">
+            </div>
         </div>
-        <button class="btn-start" onclick="initiateSystem()">START BLOCKING SESSION</button>
+        <button class="btn-start" onclick="initiateSystem()">INITIATE PROTOCOL</button>
     </div>
 
-    <div id="active-area" style="display:none; text-align:center;">
-        <div style="color: var(--neon); font-weight: bold;">● AI MONITORING ACTIVE</div>
-        <div id="timer-display">00:00</div>
-        <p style="font-size: 12px; color: #888;">Protocol ends when timer hits zero.</p>
+    <div id="active-area" class="hidden">
+        <div style="text-align:center; color: var(--neon); font-size: 12px; font-weight: bold;">● AI MONITORING ENABLED</div>
+        <div id="active-timer">00:25:00</div>
+        <p style="text-align: center; font-size: 11px; color: #666;">TAB LOCK ACTIVE: Leaving this page triggers AI Block.</p>
     </div>
 
     <div class="stats-grid">
         <div class="stat-card"><span class="stat-label">PANIC RESETS</span><span class="stat-num" id="pCount">3</span></div>
-        <div class="stat-card"><span class="stat-label">SESSIONS FINISHED</span><span class="stat-num" id="gCount">0</span></div>
+        <div class="stat-card"><span class="stat-label">SESSIONS DONE</span><span class="stat-num" id="gCount">0</span></div>
     </div>
 
     <button class="btn-panic" onclick="usePanic()">PANIC RESET (Use 1)</button>
 
-    <div class="dev-row">
-        <input type="password" id="devPass" placeholder="DEV CODE" style="margin:0; font-size: 12px;">
-        <button class="btn-kill" onclick="devKill()">KILL</button>
+    <div style="display: flex; gap: 5px; margin-top: 15px; border-top: 1px solid #222; padding-top: 15px;">
+        <input type="password" id="devPass" placeholder="DEV CODE" style="margin:0; font-size: 12px; flex-grow: 1;">
+        <button onclick="devKill()" style="width: 80px; background: var(--danger); color: white; margin: 0; padding: 5px; font-size: 11px;">KILL</button>
     </div>
 </div>
 
@@ -85,17 +99,20 @@
     let panics = 3;
     let sessions = 0;
     let isActive = false;
-    let timeLeft = 0;
-    let countdown;
+    let totalSeconds = 0;
+    let timerInt;
 
     function initiateSystem() {
-        const minutes = document.getElementById('timeInput').value;
-        if (!minutes || minutes <= 0) return alert("Please set a valid amount of time.");
+        let h = parseInt(document.getElementById('hrs').value) || 0;
+        let m = parseInt(document.getElementById('mins').value) || 0;
+        let s = parseInt(document.getElementById('secs').value) || 0;
+        totalSeconds = (h * 3600) + (m * 60) + s;
+
+        if (totalSeconds <= 0) return alert("System Error: No duration specified.");
 
         const perms = [
-            "Grant Amol Giri AI permission to monitor this device's focus?",
-            `Authorize AI to block distractions for the next ${minutes} minutes?`,
-            "Enable strict lockout mode?",
+            "Grant Amol Giri AI access to monitor device signatures?",
+            "Authorize blocking of non-productive behavior?",
             "Final Step: Productivity Protocol will start now. Proceed?"
         ];
 
@@ -104,12 +121,12 @@
         }
 
         isActive = true;
-        timeLeft = minutes * 60;
-        document.getElementById('setup-area').style.display = 'none';
-        document.getElementById('active-area').style.display = 'block';
+        document.getElementById('setup-area').classList.add('hidden');
+        document.getElementById('active-area').classList.remove('hidden');
         
-        startTimer();
+        startCountdown();
 
+        // AI MONITORING: Detects when you go to another tab
         window.onblur = function() {
             if (isActive) {
                 document.getElementById('blocker').style.display = 'flex';
@@ -117,42 +134,43 @@
         };
     }
 
-    function startTimer() {
-        updateTimerDisplay();
-        countdown = setInterval(() => {
-            timeLeft--;
-            updateTimerDisplay();
-            if (timeLeft <= 0) {
+    function startCountdown() {
+        updateClock();
+        timerInt = setInterval(() => {
+            totalSeconds--;
+            updateClock();
+            if (totalSeconds <= 0) {
                 sessionSuccess();
             }
         }, 1000);
     }
 
-    function updateTimerDisplay() {
-        const mins = Math.floor(timeLeft / 60);
-        const secs = timeLeft % 60;
-        document.getElementById('timer-display').innerText = 
-            `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    function updateClock() {
+        let h = Math.floor(totalSeconds / 3600);
+        let m = Math.floor((totalSeconds % 3600) / 60);
+        let s = totalSeconds % 60;
+        document.getElementById('active-timer').innerText = 
+            `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
     }
 
     function usePanic() {
         if (panics > 0) {
             panics--;
-            stopSystem("PANIC USED. SESSION ABORTED.");
+            stopSystem("PANIC USED: SYSTEM DISARMED.");
         } else {
-            alert("NO PANIC RESETS REMAINING.");
+            alert("ALERT: ZERO PANIC RESETS REMAINING.");
         }
     }
 
     function sessionSuccess() {
         sessions++;
         panics++;
-        stopSystem("SESSION COMPLETE! +1 PANIC RESET GRANTED.");
+        stopSystem("MISSION SUCCESS: +1 PANIC RESET GRANTED.");
     }
 
     function devKill() {
         if (document.getElementById('devPass').value === "123") {
-            stopSystem("DEV OVERRIDE SUCCESS.");
+            stopSystem("DEVELOPER OVERRIDE: PROTOCOL SHUT DOWN.");
         }
     }
 
@@ -163,11 +181,10 @@
     function stopSystem(msg) {
         alert(msg);
         isActive = false;
-        clearInterval(countdown);
-        document.getElementById('setup-area').style.display = 'block';
-        document.getElementById('active-area').style.display = 'none';
+        clearInterval(timerInt);
+        document.getElementById('setup-area').classList.remove('hidden');
+        document.getElementById('active-area').classList.add('hidden');
         document.getElementById('blocker').style.display = 'none';
-        document.getElementById('timeInput').value = "";
         document.getElementById('devPass').value = "";
         updateUI();
     }
