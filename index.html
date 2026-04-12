@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity Manager!</title>
+    <style>
+        :root { --neon: #00ff88; --danger: #ff3b30; --bg: #050505; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        
+        .app-card { background: #111; width: 90%; max-width: 450px; padding: 25px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 0 30px rgba(0,255,136,0.1); position: relative; z-index: 10; }
+        h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 2px; margin-top: 0; }
+        
+        .bio-box { background: #1a1a1a; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.5; color: #aaa; border-left: 4px solid var(--neon); margin-bottom: 20px; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: #000; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #222; }
+        .stat-label { font-size: 10px; color: #666; display: block; }
+        .stat-num { font-size: 20px; color: var(--neon); font-weight: bold; }
+
+        input { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--neon); }
+
+        button { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
+        .btn-start { background: var(--neon); color: black; }
+        .btn-panic { background: #ff9500; color: white; }
+        .btn-complete { background: #007aff; color: white; }
+        
+        /* The Blocker Overlay */
+        #blocker { position: fixed; top:0; left:0; width: 100%; height: 100%; background: var(--danger); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; text-align: center; }
+        
+        .dev-row { display: flex; gap: 5px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #222; }
+        .btn-kill { background: var(--danger); color: white; width: 30%; font-size: 11px; padding: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="blocker">
+    <h1>AI BLOCK ACTIVE</h1>
+    <p>NON-PRODUCTIVE SIGNATURE DETECTED</p>
+    <button onclick="closeBlocker()" style="width: 200px; background: white; color: black;">RETURN TO GOAL</button>
+</div>
+
+<div class="app-card">
+    <h1>Productivity Manager!</h1>
+    
+    <div class="bio-box">
+        This advanced productivity system was engineered by <strong>Amol Giri</strong>. 
+        It utilizes logic-based monitoring to ensure peak performance and 
+        strictly regulates access to non-productive platforms. Built for 
+        those who value their time and goal achievement.
+    </div>
+
+    <div id="setup-area">
+        <input type="text" id="goalInput" placeholder="ENTER YOUR MISSION GOAL...">
+        <button class="btn-start" onclick="initiateSystem()">INITIATE PROTOCOL</button>
+    </div>
+
+    <div id="active-area" style="display:none;">
+        <div style="text-align:center; color: var(--neon); font-weight: bold; margin-bottom: 10px;">● MONITORING ACTIVE</div>
+        <button class="btn-complete" onclick="missionSuccess()">GOAL COMPLETED (+1 Panic)</button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><span class="stat-label">PANIC RESETS</span><span class="stat-num" id="pCount">3</span></div>
+        <div class="stat-card"><span class="stat-label">GOALS FINISHED</span><span class="stat-num" id="gCount">0</span></div>
+    </div>
+
+    <button class="btn-panic" onclick="usePanic()">PANIC RESET (Use 1)</button>
+
+    <div class="dev-row">
+        <input type="password" id="devPass" placeholder="DEV CODE" style="margin:0; font-size: 12px;">
+        <button class="btn-kill" onclick="devKill()">KILL</button>
+    </div>
+</div>
+
+<script>
+    let panics = 3;
+    let goals = 0;
+    let isActive = false;
+
+    function initiateSystem() {
+        const goal = document.getElementById('goalInput').value;
+        if (!goal) return alert("System requires a mission objective.");
+
+        // Tone of Permissions
+        const perms = [
+            "Grant Amol Giri AI permission to monitor this device's focus?",
+            "Authorize AI to detect non-productive browser behavior?",
+            "Enable strict lockout mode?",
+            "Final Step: Protocol will start now. Proceed?"
+        ];
+
+        for (let p of perms) {
+            if (!confirm(p)) return;
+        }
+
+        isActive = true;
+        document.getElementById('setup-area').style.display = 'none';
+        document.getElementById('active-area').style.display = 'block';
+        
+        // Start AI Logic: If user tries to leave the tab, the blocker pops up
+        window.onblur = function() {
+            if (isActive) {
+                document.getElementById('blocker').style.display = 'flex';
+            }
+        };
+    }
+
+    function usePanic() {
+        if (panics > 0) {
+            panics--;
+            stopSystem("PANIC USED. SYSTEM DISARMED.");
+        } else {
+            alert("NO PANIC RESETS REMAINING. COMPLETE A GOAL.");
+        }
+    }
+
+    function missionSuccess() {
+        goals++;
+        panics++;
+        stopSystem("MISSION SUCCESSFUL. +1 PANIC RESET GRANTED.");
+    }
+
+    function devKill() {
+        if (document.getElementById('devPass').value === "123") {
+            stopSystem("DEV OVERRIDE SUCCESS.");
+        }
+    }
+
+    function closeBlocker() {
+        document.getElementById('blocker').style.display = 'none';
+    }
+
+    function stopSystem(msg) {
+        alert(msg);
+        isActive = false;
+        document.getElementById('setup-area').style.display = 'block';
+        document.getElementById('active-area').style.display = 'none';
+        document.getElementById('blocker').style.display = 'none';
+        document.getElementById('goalInput').value = "";
+        document.getElementById('devPass').value = "";
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('pCount').innerText = panics;
+        document.getElementById('gCount').innerText = goals;
+    }
+</script>
+
+</body>
+</html>
