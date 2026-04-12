@@ -18,27 +18,30 @@
         .stat-label { font-size: 10px; color: #666; display: block; }
         .stat-num { font-size: 20px; color: var(--neon); font-weight: bold; }
 
-        input { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; margin-bottom: 5px; color: var(--neon); }
+        input { width: 100%; padding: 12px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
         input:focus { border-color: var(--neon); }
 
         button { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
         .btn-start { background: var(--neon); color: black; }
         .btn-panic { background: #ff9500; color: white; }
-        .btn-complete { background: #007aff; color: white; }
         
-        /* The Blocker Overlay */
-        #blocker { position: fixed; top:0; left:0; width: 100%; height: 100%; background: var(--danger); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; text-align: center; }
+        #blocker { position: fixed; top:0; left:0; width: 100%; height: 100%; background: var(--danger); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; text-align: center; padding: 20px; }
         
         .dev-row { display: flex; gap: 5px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #222; }
         .btn-kill { background: var(--danger); color: white; width: 30%; font-size: 11px; padding: 5px; }
+        
+        #timer-display { font-size: 2.5rem; font-weight: bold; color: var(--neon); margin: 10px 0; }
     </style>
 </head>
 <body>
 
 <div id="blocker">
     <h1>AI BLOCK ACTIVE</h1>
-    <p>NON-PRODUCTIVE SIGNATURE DETECTED</p>
-    <button onclick="closeBlocker()" style="width: 200px; background: white; color: black;">RETURN TO GOAL</button>
+    <p>NON-PRODUCTIVE SIGNATURE DETECTED DURING PRODUCTIVITY SESSION</p>
+    <p>FOCUS ON YOUR WORK UNTIL THE TIMER ENDS</p>
+    <button onclick="closeBlocker()" style="width: 200px; background: white; color: black;">RETURN TO WORK</button>
 </div>
 
 <div class="app-card">
@@ -52,18 +55,22 @@
     </div>
 
     <div id="setup-area">
-        <input type="text" id="goalInput" placeholder="ENTER YOUR MISSION GOAL...">
-        <button class="btn-start" onclick="initiateSystem()">INITIATE PROTOCOL</button>
+        <div class="input-group">
+            <label>PRODUCTIVITY DURATION (MINUTES):</label>
+            <input type="number" id="timeInput" placeholder="e.g. 25" min="1">
+        </div>
+        <button class="btn-start" onclick="initiateSystem()">START BLOCKING SESSION</button>
     </div>
 
-    <div id="active-area" style="display:none;">
-        <div style="text-align:center; color: var(--neon); font-weight: bold; margin-bottom: 10px;">● MONITORING ACTIVE</div>
-        <button class="btn-complete" onclick="missionSuccess()">GOAL COMPLETED (+1 Panic)</button>
+    <div id="active-area" style="display:none; text-align:center;">
+        <div style="color: var(--neon); font-weight: bold;">● AI MONITORING ACTIVE</div>
+        <div id="timer-display">00:00</div>
+        <p style="font-size: 12px; color: #888;">Protocol ends when timer hits zero.</p>
     </div>
 
     <div class="stats-grid">
         <div class="stat-card"><span class="stat-label">PANIC RESETS</span><span class="stat-num" id="pCount">3</span></div>
-        <div class="stat-card"><span class="stat-label">GOALS FINISHED</span><span class="stat-num" id="gCount">0</span></div>
+        <div class="stat-card"><span class="stat-label">SESSIONS FINISHED</span><span class="stat-num" id="gCount">0</span></div>
     </div>
 
     <button class="btn-panic" onclick="usePanic()">PANIC RESET (Use 1)</button>
@@ -76,19 +83,20 @@
 
 <script>
     let panics = 3;
-    let goals = 0;
+    let sessions = 0;
     let isActive = false;
+    let timeLeft = 0;
+    let countdown;
 
     function initiateSystem() {
-        const goal = document.getElementById('goalInput').value;
-        if (!goal) return alert("System requires a mission objective.");
+        const minutes = document.getElementById('timeInput').value;
+        if (!minutes || minutes <= 0) return alert("Please set a valid amount of time.");
 
-        // Tone of Permissions
         const perms = [
             "Grant Amol Giri AI permission to monitor this device's focus?",
-            "Authorize AI to detect non-productive browser behavior?",
+            `Authorize AI to block distractions for the next ${minutes} minutes?`,
             "Enable strict lockout mode?",
-            "Final Step: Protocol will start now. Proceed?"
+            "Final Step: Productivity Protocol will start now. Proceed?"
         ];
 
         for (let p of perms) {
@@ -96,10 +104,12 @@
         }
 
         isActive = true;
+        timeLeft = minutes * 60;
         document.getElementById('setup-area').style.display = 'none';
         document.getElementById('active-area').style.display = 'block';
         
-        // Start AI Logic: If user tries to leave the tab, the blocker pops up
+        startTimer();
+
         window.onblur = function() {
             if (isActive) {
                 document.getElementById('blocker').style.display = 'flex';
@@ -107,19 +117,37 @@
         };
     }
 
+    function startTimer() {
+        updateTimerDisplay();
+        countdown = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+            if (timeLeft <= 0) {
+                sessionSuccess();
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        document.getElementById('timer-display').innerText = 
+            `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
     function usePanic() {
         if (panics > 0) {
             panics--;
-            stopSystem("PANIC USED. SYSTEM DISARMED.");
+            stopSystem("PANIC USED. SESSION ABORTED.");
         } else {
-            alert("NO PANIC RESETS REMAINING. COMPLETE A GOAL.");
+            alert("NO PANIC RESETS REMAINING.");
         }
     }
 
-    function missionSuccess() {
-        goals++;
+    function sessionSuccess() {
+        sessions++;
         panics++;
-        stopSystem("MISSION SUCCESSFUL. +1 PANIC RESET GRANTED.");
+        stopSystem("SESSION COMPLETE! +1 PANIC RESET GRANTED.");
     }
 
     function devKill() {
@@ -135,17 +163,18 @@
     function stopSystem(msg) {
         alert(msg);
         isActive = false;
+        clearInterval(countdown);
         document.getElementById('setup-area').style.display = 'block';
         document.getElementById('active-area').style.display = 'none';
         document.getElementById('blocker').style.display = 'none';
-        document.getElementById('goalInput').value = "";
+        document.getElementById('timeInput').value = "";
         document.getElementById('devPass').value = "";
         updateUI();
     }
 
     function updateUI() {
         document.getElementById('pCount').innerText = panics;
-        document.getElementById('gCount').innerText = goals;
+        document.getElementById('gCount').innerText = sessions;
     }
 </script>
 
