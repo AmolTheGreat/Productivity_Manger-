@@ -1,4 +1,0 @@
-streamlit
-pygetwindow
-pyautogui
-psutil
